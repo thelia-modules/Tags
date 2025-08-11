@@ -17,7 +17,6 @@ use Propel\Runtime\ActiveQuery\Join;
 use Propel\Runtime\Exception\PropelException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Tags\Model\Map\TagsTableMap;
 use Tags\Model\TagsQuery;
@@ -63,11 +62,9 @@ use Thelia\Type\TypeCollection;
 
 class EventManager implements EventSubscriberInterface
 {
-    protected Request $request;
 
-    public function __construct(RequestStack $request)
+    public function __construct(protected RequestStack $requestStack)
     {
-        $this->request = $request->getCurrentRequest();
     }
 
     public static function getSubscribedEvents(): array
@@ -514,7 +511,7 @@ class EventManager implements EventSubscriberInterface
      */
     protected function processImageOrDocumentKindFields(string $kind, FileCreateOrUpdateEvent $event, FileModelInterface $model): void
     {
-        if (null === $event->tags = $this->request->get('thelia_'.$kind.'_modification')['tags'] ?? null) {
+        if (null === $event->tags = $this->requestStack->getCurrentRequest()?->get('thelia_'.$kind.'_modification')['tags'] ?? null) {
             return;
         }
 
