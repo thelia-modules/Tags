@@ -266,11 +266,13 @@ class EventManager implements EventSubscriberInterface
 
         $objectType = $argumentCollection->get('source')?->getValue();
 
-        if (empty($objectType)) {
-            foreach ($knownObjects as $object) {
-                if (! empty($argumentCollection->get($object)?->getValue())) {
-                    return $object;
-                }
+        if (! empty($objectType)) {
+            return \in_array($objectType, $knownObjects, true) ? $objectType : null;
+        }
+
+        foreach ($knownObjects as $object) {
+            if (! empty($argumentCollection->get($object)?->getValue())) {
+                return $object;
             }
         }
 
