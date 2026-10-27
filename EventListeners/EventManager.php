@@ -40,7 +40,7 @@ use Thelia\Core\Event\TheliaFormEvent;
 use Thelia\Core\Template\Loop\Argument\Argument;
 use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
 use Thelia\Core\Translation\Translator;
-use Thelia\Files\FileModelInterface;
+use Thelia\Core\File\FileModelInterface;
 use Thelia\Model\Map\BrandDocumentTableMap;
 use Thelia\Model\Map\BrandImageTableMap;
 use Thelia\Model\Map\BrandTableMap;
