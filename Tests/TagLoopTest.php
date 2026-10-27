@@ -1,100 +1,33 @@
 <?php
-/*************************************************************************************/
-/*      Copyright (c) Franck Allimant, CQFDev                                        */
-/*      email : thelia@cqfdev.fr                                                     */
-/*      web : http://www.cqfdev.fr                                                   */
-/*                                                                                   */
-/*      For the full copyright and license information, please view the LICENSE      */
-/*      file that was distributed with this source code.                             */
-/*************************************************************************************/
 
-/**
- * Created by Franck Allimant, CQFDev <franck@cqfdev.fr>
- * Date: 04/08/2017 14:53
- */
+declare(strict_types=1);
 
 namespace Tags\Tests;
 
-use Tags\Loop\Tags;
-
-class TagLoopTest extends BaseTagTest
+final class TagLoopTest extends TaggedProductsTestCase
 {
-    public function getTestedClassName()
+    public function testPartialMatchFindsEveryTagContainingTheSearch(): void
     {
-        return 'Tags\Loop\Tags';
+        self::assertCount(2, $this->rows('tags', ['source' => 'product', 'tag_match_mode' => 'partial', 'tag' => '__test']));
+
+        $rows = $this->rows('tags', ['source' => 'product', 'tag_match_mode' => 'partial', 'tag' => 'tag1']);
+        self::assertCount(1, $rows);
+        self::assertSame($this->firstProduct->getId(), (int) $rows[0]['SOURCE_ID']);
     }
 
-    public function getTestedInstance()
+    public function testExactMatchFindsOnlyTheNamedTag(): void
     {
-        return new Tags($this->container);
+        $rows = $this->rows('tags', ['source' => 'product', 'tag_match_mode' => 'exact', 'tag' => '__test_tag1']);
+
+        self::assertCount(1, $rows);
+        self::assertSame($this->firstProduct->getId(), (int) $rows[0]['SOURCE_ID']);
     }
 
-    public function getMandatoryArguments()
+    public function testExcludeTagLeavesTheOtherTags(): void
     {
-        return [
-            'source' => 'product'
-        ];
-    }
+        $rows = $this->rows('tags', ['source' => 'product', 'tag_match_mode' => 'partial', 'tag' => '__test', 'exclude_tag' => '__test_tag1']);
 
-    public function testSearchMode()
-    {
-        $this->instance->initializeArgs([
-            'source' => 'product',
-            'tag_match_mode' => 'partial',
-            'tag' => '__test'
-        ]);
-
-        $dummy = null;
-
-        $loopResults = $this->instance->exec($dummy);
-        $this->assertEquals(2, $loopResults->getCount());
-
-        $this->instance->initializeArgs([
-            'source' => 'product',
-            'tag_match_mode' => 'partial',
-            'tag' => 'tag1'
-        ]);
-
-        $loopResults = $this->instance->exec($dummy);
-        $this->assertEquals(1, $loopResults->getCount());
-
-        $substitutions = $loopResults->current()->getVarVal();
-        $this->assertEquals($this->productId, $substitutions['SOURCE_ID']);
-
-        $this->instance->initializeArgs([
-            'source' => 'product',
-            'tag_match_mode' => 'exact',
-            'tag' => '__test_tag1'
-        ]);
-
-        $loopResults = $this->instance->exec($dummy);
-        $this->assertEquals(1, $loopResults->getCount());
-
-        $substitutions = $loopResults->current()->getVarVal();
-        $this->assertEquals($this->productId, $substitutions['SOURCE_ID']);
-
-        $this->instance->initializeArgs([
-            'source' => 'product',
-            'tag_match_mode' => 'partial',
-            'tag' => 'tag2'
-        ]);
-
-        $loopResults = $this->instance->exec($dummy);
-        $this->assertEquals(1, $loopResults->getCount());
-
-        $substitutions = $loopResults->current()->getVarVal();
-        $this->assertNotEquals($this->productId, $substitutions['SOURCE_ID']);
-
-        $this->instance->initializeArgs([
-            'source' => 'product',
-            'exclude_tag' => '__test_tag1'
-        ]);
-
-        $loopResults = $this->instance->exec($dummy);
-        $this->assertEquals(1, $loopResults->getCount());
-
-        $substitutions = $loopResults->current()->getVarVal();
-        $this->assertNotEquals($this->productId, $substitutions['SOURCE_ID']);
-
+        self::assertCount(1, $rows);
+        self::assertSame($this->secondProduct->getId(), (int) $rows[0]['SOURCE_ID']);
     }
 }
