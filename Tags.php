@@ -32,7 +32,7 @@ class Tags extends BaseModule
             $database = new Database($con->getWrappedConnection());
             $database->insertSql(null, array(__DIR__ . '/Config/thelia.sql'));
 
-            self::getConfigValue('is_initialised', true);
+            self::setConfigValue('is_initialised', true);
         }
     }
 
