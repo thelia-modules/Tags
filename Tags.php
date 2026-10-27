@@ -15,8 +15,9 @@ namespace Tags;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use Tags\Model\TagsQuery;
-use Thelia\Install\Database;
+use Thelia\Core\Install\Database;
 use Thelia\Module\BaseModule;
+use TheliaSmarty\Template\AbstractSmartyPlugin;
 
 class Tags extends BaseModule
 {
@@ -25,7 +26,7 @@ class Tags extends BaseModule
 
     public const DELETE_ORPHAN_EVENT = 'tags.delete_orphan_event';
 
-    public function postActivation(ConnectionInterface $con = null): void
+    public function postActivation(?ConnectionInterface $con = null): void
     {
         if (! self::getConfigValue('is_initialised')) {
             $database = new Database($con->getWrappedConnection());
@@ -35,7 +36,7 @@ class Tags extends BaseModule
         }
     }
 
-    public function update($currentVersion, $newVersion, ConnectionInterface $con = null): void
+    public function update($currentVersion, $newVersion, ?ConnectionInterface $con = null): void
     {
         $database = new Database($con->getWrappedConnection());
 
@@ -52,8 +53,20 @@ class Tags extends BaseModule
     public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {
         $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
-            ->exclude([THELIA_MODULE_DIR.ucfirst(self::getModuleCode()).'/I18n/*'])
+            ->exclude([
+                __DIR__.'/I18n',
+                __DIR__.'/I18n/*',
+                __DIR__.'/I18n/**/*',
+                __DIR__.'/Smarty',
+            ])
             ->autowire(true)
             ->autoconfigure(true);
+
+        // The Smarty plugin is an optional integration: it needs TheliaSmarty, which Thelia 3 no longer ships by default.
+        if (class_exists(AbstractSmartyPlugin::class)) {
+            $servicesConfigurator->load(self::getModuleCode().'\\Smarty\\', __DIR__.'/Smarty')
+                ->autowire(true)
+                ->autoconfigure(true);
+        }
     }
 }
